@@ -1,0 +1,273 @@
+openapi: 3.0.0
+info:
+  title: Subscription Service API
+  version: 1.0.0
+  description: API для управления подписками пользователей.
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+
+  /subscriptions:
+    post:
+      summary: Создать подписку
+      tags: [Subscriptions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          description: Подписка успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Внутренняя ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: Получить список подписок с фильтрацией
+      tags: [Subscriptions]
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          required: false
+        - name: service_name
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Формат YYYY-MM-DD
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Формат YYYY-MM-DD
+      responses:
+        '200':
+          description: Список подписок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /subscriptions/{id}:
+    parameters:                       # <-- параметр id вынесён на уровень пути (исправление ошибки)
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      summary: Получить подписку по ID
+      tags: [Subscriptions]
+      responses:
+        '200':
+          description: Найденная подписка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Подписка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Удалить подписку
+      tags: [Subscriptions]
+      responses:
+        '200':
+          description: Подписка удалена
+        '404':
+          description: Подписка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Обновить подписку
+      tags: [Subscriptions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          description: Подписка обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Подписка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Ошибка валидации (нет полей для обновления, некорректный ID и т.п.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /total:
+    get:
+      summary: Получить суммарную стоимость подписок за период
+      tags: [Subscriptions]
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{4}-[0-9]{2}$'
+          description: Дата начала периода (YYYY-MM)
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{4}-[0-9]{2}$'
+          description: Дата окончания периода (YYYY-MM)
+        - name: user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: service_name
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Общая стоимость
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalCost'
+        '422':
+          description: Ошибка валидации (неправильные даты)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+
+  schemas:
+
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "8f14e45f-ea7d-4c92-8e9a-1af34c5bd123"
+        user_id:
+          type: string
+          format: uuid
+          example: "2b1c4a0e-8e59-41fa-9b57-79e2a288c001"
+        service_name:
+          type: string
+          example: "Netflix"
+        price:
+          type: number
+          example: 122
+        start_date:
+          type: string
+          format: date
+          example: "2024-01-01"
+        end_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2024-06-01"
+
+    TotalCost:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 89000
+        months:
+          type: integer
+          example: 6
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "ERROR_DESRIPTION"
+
+
