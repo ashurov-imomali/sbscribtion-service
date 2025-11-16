@@ -72,7 +72,7 @@ docker-compose up --build
 
 ## Swagger документация
 
-* Swagger документация находиться [ЗДЕСЬ](http://github.com/ashurov-imomali/sbscribtion-service/blob/main/Readme.md)
+* Swagger документация находиться [ЗДЕСЬ](http://github.com/ashurov-imomali/sbscribtion-service/blob/main/docs/openapi.yaml)
 
 ---
 
